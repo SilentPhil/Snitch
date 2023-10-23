@@ -12,6 +12,8 @@ function __SnitchClassSoftError() constructor
     __payload           = undefined;
     __request           = undefined;
     __uuid              = SnitchGenerateUUID4String();
+    __envelope          = undefined;
+    __envelope_data_buffer  = undefined;
     
     static __SetMessage = function(_message)
     {
@@ -21,7 +23,12 @@ function __SnitchClassSoftError() constructor
         __SendAll();
     }
     
-    static __SetException = function(_exceptionStruct)
+    static __SetEnvelopeBuffer = function(_buffer)
+    {
+        __envelope_data_buffer = _buffer;
+    }
+    
+    static __SetException = function(_exceptionStruct, _is_fatal/*:bool*/ = true)
     {
         //Extract information from the GameMaker exception struct we were given
         __message     = _exceptionStruct.message;
@@ -29,7 +36,7 @@ function __SnitchClassSoftError() constructor
         __script      = _exceptionStruct.script;
         __line        = _exceptionStruct.line;
         
-        __fatal = true;
+        __fatal = _is_fatal;
         
         __SetRawCallstack(_exceptionStruct.stacktrace, 0);
         __SendAll();
@@ -105,7 +112,12 @@ function __SnitchClassSoftError() constructor
     {
         switch(SNITCH_SERVICE_MODE)
         {
-            case 1: __SendSentry();        break;
+            case 1: 
+                    __SendSentry(); 
+                    if (SNITCH_SENTRY_SEND_SCREEENSHOT_ENVELOPE) {
+                        __SendSentryEnvelope();
+                    }
+            break;
             case 2: __SendGameAnalytics(); break;
             case 3: __SendBugsnag();       break;
             case 4: __SendGeneric();       break;
@@ -130,6 +142,17 @@ function __SnitchClassSoftError() constructor
         {
             __SnitchSentryHTTPRequest(__request);
             __request.__SaveBackup();
+        }
+    }
+    
+    static __SendSentryEnvelope = function()
+    {
+        __envelope  = __SnitchConfigEnvelope(__uuid, __envelope_data_buffer);
+        __request   = new __SnitchClassRequest(__uuid, string(__envelope));
+        
+        if ((SNITCH_SERVICE_MODE == 1) && SnitchServiceGet())
+        {
+            __SnitchSentryHTTPRequest(__request, "/envelope/", false);
         }
     }
     

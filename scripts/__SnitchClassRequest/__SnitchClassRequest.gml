@@ -155,7 +155,7 @@ function __SnitchRequestBackupSaveManifest()
     buffer_save_ext(_buffer, SNITCH_REQUEST_BACKUP_MANIFEST_FILENAME, 0, buffer_tell(_buffer));
 }
 
-function __SnitchSentryHTTPRequest(_request)
+function __SnitchSentryHTTPRequest(_request, _endpoint = "/store/", _is_compress = true)
 {
     static __snitchState = __SnitchState();
     
@@ -165,7 +165,7 @@ function __SnitchSentryHTTPRequest(_request)
     
     //And fire off the request!
     //Good luck little packet
-    _request.__Send(__snitchState.__Endpoint, "POST", __snitchState.__HTTPHeaderMap, true);
+    _request.__Send(__snitchState.__Endpoint + _endpoint, "POST", __snitchState.__HTTPHeaderMap, _is_compress);
     
     ds_map_clear(__snitchState.__HTTPHeaderMap);
 }

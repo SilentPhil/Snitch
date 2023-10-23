@@ -66,3 +66,24 @@ function __SnitchConfigPayloadSentry(_uuid, _message, _longMessage, _callstack, 
         breadcrumbs: SnitchSentryBreadcrumbsGet()
     };
 }
+
+function __SnitchConfigEnvelope(_uuid, _buffer_data)
+{
+    var header = {
+        event_id: _uuid,
+    }
+    
+    var file_base64     = buffer_base64_encode(_buffer_data, 0, buffer_get_size(_buffer_data));
+    var buffer_content	= buffer_read(_buffer_data, buffer_text);
+    
+    var item = {
+        type : "attachment",
+        content_type : "image/png;base64",
+        filename : "screenshot_in_base64_" + _uuid
+    }
+    var envelope = json_stringify(header) + "\n" + json_minifying(json_stringify(item)) + "\n" + string(file_base64);
+    
+    buffer_delete(_buffer_data);
+    
+    return envelope;
+}

@@ -28,3 +28,5 @@
 //Starting size of the Snitch logging buffer, in bytes. 1024*1024 bytes is 1 megabyte
 //This buffer is a "buffer_grow" type and will dynamically resize as more data is added
 #macro SNITCH_LOG_BUFFER_START_SIZE  (1024*1024)
+
+#macro SNITCH_SENTRY_SEND_SCREEENSHOT_ENVELOPE true

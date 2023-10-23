@@ -3,6 +3,15 @@ function __SnitchExceptionHandler(_struct)
 {
     __SnitchTrace("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     var _event = new __SnitchClassSoftError();
+    
+    if (SNITCH_SENTRY_SEND_SCREEENSHOT_ENVELOPE) {
+        var screenshot_name = "__screenshot__";
+        screen_save(screenshot_name);
+        var envelope_buffer = buffer_load(screenshot_name);
+        file_delete(screenshot_name);
+        _event.__SetEnvelopeBuffer(envelope_buffer);
+    }
+    
     _event.__SetException(_struct);
     __SnitchTrace("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     
