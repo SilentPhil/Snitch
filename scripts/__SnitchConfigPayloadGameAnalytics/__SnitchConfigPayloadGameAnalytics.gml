@@ -16,7 +16,7 @@ function __SnitchConfigPayloadGameAnalytics(_uuid, _message, _longMessage, _call
             session_id: SNITCH_SESSION_ID,
             session_num: int64(1), //We're not tracking user IDs so this is always 1
             category: "error",
-            severity: __fatal? "critical" : "error",
+            severity: _fatal? "critical" : "error",
             message: _message + " " + string(_callstack),
             
             ////You may optionally use the following:

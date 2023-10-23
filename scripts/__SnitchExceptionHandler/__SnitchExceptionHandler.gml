@@ -3,16 +3,19 @@ function __SnitchExceptionHandler(_struct)
 {
     __SnitchTrace("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     var _event = new __SnitchClassSoftError();
+        _event.__SetLevelType(SNITCH_LEVEL_TYPE.FATAL);
+
+    _event.__SetException(_struct);
     
     if (SNITCH_SENTRY_SEND_SCREEENSHOT_ENVELOPE) {
         var screenshot_name = "__screenshot__";
         screen_save(screenshot_name);
         var envelope_buffer = buffer_load(screenshot_name);
         file_delete(screenshot_name);
-        _event.__SetEnvelopeBuffer(envelope_buffer);
+        _event.__SendSentryEnvelope(envelope_buffer);
+        buffer_delete(envelope_buffer);
     }
     
-    _event.__SetException(_struct);
     __SnitchTrace("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     
     
@@ -38,9 +41,9 @@ function __SnitchExceptionHandler(_struct)
             var _text = "No data available";
             switch(SWITCH_CRASH_DUMP_MODE)
             {
-                case 1: _text = json_stringify(_struct, true);          break;
-                case 2: _text = _event.__GetExceptionString();           break;
-                case 3: _text = _event.__GetCompressedExceptionString(); break;
+                case 1: _text = json_stringify(_struct, true);              break;
+                case 2: _text = _event.__GetExceptionString();              break;
+                case 3: _text = _event.__GetCompressedExceptionString();    break;
             }
             
             var _buffer = buffer_create(string_byte_length(_text), buffer_fixed, 1);

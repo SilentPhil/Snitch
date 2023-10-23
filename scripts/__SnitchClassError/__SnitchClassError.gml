@@ -5,7 +5,7 @@ function __SnitchClassSoftError() constructor
     __longMessage       = undefined;
     __script            = undefined;
     __line              = undefined;
-    __fatal             = false;
+    __level_type        = undefined;
     __rawCallstackArray = undefined;
     __simpleCallstack   = undefined;
     __serviceCallstack  = undefined;
@@ -13,7 +13,11 @@ function __SnitchClassSoftError() constructor
     __request           = undefined;
     __uuid              = SnitchGenerateUUID4String();
     __envelope          = undefined;
-    __envelope_data_buffer  = undefined;
+    
+    static __SetLevelType = function(_level_type/*:int<SNITCH_LEVEL_TYPE>*/)
+    {
+        __level_type = _level_type;
+    }
     
     static __SetMessage = function(_message)
     {
@@ -23,20 +27,13 @@ function __SnitchClassSoftError() constructor
         __SendAll();
     }
     
-    static __SetEnvelopeBuffer = function(_buffer)
-    {
-        __envelope_data_buffer = _buffer;
-    }
-    
-    static __SetException = function(_exceptionStruct, _is_fatal/*:bool*/ = true)
+    static __SetException = function(_exceptionStruct)
     {
         //Extract information from the GameMaker exception struct we were given
         __message     = _exceptionStruct.message;
         __longMessage = _exceptionStruct.longMessage;
         __script      = _exceptionStruct.script;
         __line        = _exceptionStruct.line;
-        
-        __fatal = _is_fatal;
         
         __SetRawCallstack(_exceptionStruct.stacktrace, 0);
         __SendAll();
@@ -112,18 +109,13 @@ function __SnitchClassSoftError() constructor
     {
         switch(SNITCH_SERVICE_MODE)
         {
-            case 1: 
-                    __SendSentry(); 
-                    if (SNITCH_SENTRY_SEND_SCREEENSHOT_ENVELOPE) {
-                        __SendSentryEnvelope();
-                    }
-            break;
-            case 2: __SendGameAnalytics(); break;
-            case 3: __SendBugsnag();       break;
-            case 4: __SendGeneric();       break;
+            case 1: __SendSentry();         break;
+            case 2: __SendGameAnalytics();  break;
+            case 3: __SendBugsnag();        break;
+            case 4: __SendGeneric();        break;
         }
         
-        var _string = "[" + (__fatal? "fatal" : "error") + " " + __uuid + "] " + __message;
+        var _string = "[" + __SnitchLevelTypeName(__level_type) + " " + __uuid + "] " + __message;
         if (is_array(__rawCallstackArray)) _string += " " + string(__GuaranteeSimpleCallstack());
         
         __SnitchShowDebugMessage(_string);
@@ -134,7 +126,7 @@ function __SnitchClassSoftError() constructor
     static __SendSentry = function()
     {
         //Make a new request struct
-        __payload = __SnitchConfigPayloadSentry(__uuid, __message, __longMessage, __GuaranteeServiceCallstack(), __fatal);
+        __payload = __SnitchConfigPayloadSentry(__uuid, __message, __longMessage, __GuaranteeServiceCallstack(), __level_type);
         __request = new __SnitchClassRequest(__uuid, json_stringify(__payload));
         
         //If we have sentry.io enabled then actually send the request and make a backup in case the request fails
@@ -145,9 +137,9 @@ function __SnitchClassSoftError() constructor
         }
     }
     
-    static __SendSentryEnvelope = function()
+    static __SendSentryEnvelope = function(_envelope_data_buffer/*:buffer*/)
     {
-        __envelope  = __SnitchConfigEnvelope(__uuid, __envelope_data_buffer);
+        __envelope  = __SnitchConfigEnvelope(__uuid, _envelope_data_buffer);
         __request   = new __SnitchClassRequest(__uuid, string(__envelope));
         
         if ((SNITCH_SERVICE_MODE == 1) && SnitchServiceGet())
@@ -159,7 +151,7 @@ function __SnitchClassSoftError() constructor
     static __SendGameAnalytics = function()
     {
         //Make a new request struct
-        __payload = __SnitchConfigPayloadGameAnalytics(__uuid, __message, __longMessage, __GuaranteeServiceCallstack(), __fatal);
+        __payload = __SnitchConfigPayloadGameAnalytics(__uuid, __message, __longMessage, __GuaranteeServiceCallstack(), __level_type == SNITCH_LEVEL_TYPE.FATAL);
         __request = new __SnitchClassRequest(__uuid, json_stringify(__payload));
         
         //If we have GameAnalytics enabled then actually send the request and make a backup in case the request fails
@@ -173,7 +165,7 @@ function __SnitchClassSoftError() constructor
     static __SendBugsnag = function()
     {
         //Make a new request struct
-        __payload = __SnitchConfigPayloadBugsnag(__uuid, __message, __longMessage, __GuaranteeServiceCallstack(), __fatal);
+        __payload = __SnitchConfigPayloadBugsnag(__uuid, __message, __longMessage, __GuaranteeServiceCallstack(), __level_type == SNITCH_LEVEL_TYPE.FATAL);
         __request = new __SnitchClassRequest(__uuid, json_stringify(__payload));
         
         //If we have Bugsnag enabled then actually send the request and make a backup in case the request fails
@@ -187,7 +179,7 @@ function __SnitchClassSoftError() constructor
     static __SendGeneric = function()
     {
         //Make a new request struct
-        __payload = __SnitchConfigPayloadGeneric(__uuid, __message, __longMessage, __GuaranteeServiceCallstack(), __fatal);
+        __payload = __SnitchConfigPayloadGeneric(__uuid, __message, __longMessage, __GuaranteeServiceCallstack(), __level_type == SNITCH_LEVEL_TYPE.FATAL);
         __request = new __SnitchClassRequest(__uuid, json_stringify(__payload));
         
         //If we have the generic service mode enabled then actually send the request and make a backup in case the request fails
@@ -196,5 +188,31 @@ function __SnitchClassSoftError() constructor
             __SnitchGenericHTTPRequest(__request);
             __request.__SaveBackup();
         }
+    }
+}
+
+
+enum SNITCH_LEVEL_TYPE {
+    FATAL,
+    ERROR,
+    WARNING,
+    INFO,
+    DEBUG
+}
+
+
+function __SnitchLevelTypeName(_level_type/*:int<SNITCH_LEVEL_TYPE>*/)
+{
+    switch(_level_type)
+    {
+        case SNITCH_LEVEL_TYPE.FATAL: return "fatal";       break;
+        case SNITCH_LEVEL_TYPE.ERROR: return "error";       break;
+        case SNITCH_LEVEL_TYPE.WARNING: return "warning";   break;
+        case SNITCH_LEVEL_TYPE.INFO: return "info";         break;
+        case SNITCH_LEVEL_TYPE.DEBUG: return "debug";       break;
+        
+        default:
+            __SnitchError("SNITCH_LEVEL_TYPE value ", _level_type, " unsupported");
+        break;
     }
 }

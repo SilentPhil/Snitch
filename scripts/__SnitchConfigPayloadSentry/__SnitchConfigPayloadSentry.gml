@@ -2,12 +2,12 @@
 // https://develop.sentry.dev/sdk/overview/
 // https://develop.sentry.dev/sdk/event-payloads/
 
-function __SnitchConfigPayloadSentry(_uuid, _message, _longMessage, _callstack, _fatal)
+function __SnitchConfigPayloadSentry(_uuid, _message, _longMessage, _callstack, _level_type/*:int<SNITCH_LEVEL_TYPE>*/)
 {
     return {
         event_id: _uuid,
         timestamp: SnitchConvertToUnixTime(date_current_datetime()),
-        level: _fatal? "fatal" : "error",
+        level: __SnitchLevelTypeName(_level_type),
         release: GM_version, //Game version
         
         //Error message data

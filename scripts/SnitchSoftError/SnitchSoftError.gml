@@ -21,13 +21,22 @@ function SnitchSoftError()
     }
     
     var _event = new __SnitchClassSoftError();
+    _event.__SetLevelType(SNITCH_LEVEL_TYPE.FATAL);
     _event.__SetMessage(_string);
 }
 
 
 function SnitchCatchedException(_e/*:Exception*/)
 {
-    
     var _event = new __SnitchClassSoftError();
-    _event.__SetException(_e, false);
+    _event.__SetLevelType(SNITCH_LEVEL_TYPE.ERROR);
+    _event.__SetException(_e);
+}
+
+
+function SnitchWarning(_string/*:string*/)
+{
+    var _event = new __SnitchClassSoftError();
+        _event.__SetLevelType(SNITCH_LEVEL_TYPE.WARNING);
+    _event.__SetMessage(_string);
 }
