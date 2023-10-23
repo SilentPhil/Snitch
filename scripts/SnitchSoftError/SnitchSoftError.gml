@@ -23,3 +23,11 @@ function SnitchSoftError()
     var _event = new __SnitchClassSoftError();
     _event.__SetMessage(_string);
 }
+
+
+function SnitchCatchedException(_e/*:Exception*/)
+{
+    
+    var _event = new __SnitchClassSoftError();
+    _event.__SetException(_e, false);
+}
