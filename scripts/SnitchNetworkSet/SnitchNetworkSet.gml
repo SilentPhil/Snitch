@@ -15,6 +15,7 @@ function SnitchNetworkSet(_state, _outgoingPort = SNITCH_NETWORK_DEFAULT_OUTGOIN
     {
         var _funcCloseSocket = function()
         {
+            var _snitchState = __SnitchState();
             if (_snitchState.__NetworkSocket != undefined)
             {
                 __SnitchTrace("Destroying socket ", _snitchState.__NetworkSocket);
@@ -26,6 +27,7 @@ function SnitchNetworkSet(_state, _outgoingPort = SNITCH_NETWORK_DEFAULT_OUTGOIN
         
         var _funcOpenSocket = function()
         {
+            var _snitchState = __SnitchState();
             if (_snitchState.__NetworkSocket == undefined)
             {
                 var _type = (SNITCH_NETWORK_MODE == 1)? network_socket_udp : network_socket_tcp;
